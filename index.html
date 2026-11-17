@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<!--
+  =====================================================================
+  AURA AUDIO POLSKA - strona główna (podgląd koncepcji)
+  =====================================================================
+  Jak zbudowana jest strona (bez WordPressa, bez bazy danych):
+
+    index.html        - ta strona; każda sekcja zaczyna się komentarzem
+                        "SEKCJA: ..." - łatwo ją znaleźć (Ctrl+F)
+    js/main.js        - menu na telefonie, galeria filmów, formularz, mapa
+    dane/filmy.json   - lista filmów YouTube/Vimeo (dopisz linijkę = nowy film)
+    img/              - zdjęcia w formacie WebP (nazwy mówią, co przedstawiają)
+    img/filmy/        - miniatury filmów (opcjonalne)
+    fonts/            - czcionki Barlow trzymane lokalnie (szybkość, RODO)
+
+  Style są poniżej w <style> - podzielone na bloki z nagłówkami
+  (ZMIENNE, NAGŁÓWEK, PIERWSZY EKRAN, ...). Kolory marki zmienia się
+  w jednym miejscu: blok ZMIENNE (:root).
+  =====================================================================
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nagłośnienie Aura Audio w Polsce - kolumny, monitory, wzmacniacze | Aura Audio Polska</title>
+<meta name="description" content="Fińskie systemy nagłośnieniowe Aura Audio w Polsce: kolumny passive end-fired S1D i S2, monitory sceniczne, monitory studyjne F2, głośniki instalacyjne i wzmacniacze. Odsłuch i dobór systemu.">
+<!-- Podgląd: strona ukryta przed Google. Na docelowej stronie usunąć poniższą linię. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111214">
+<link rel="icon" href="img/znak.svg" type="image/svg+xml">
+
+<!-- Czcionki: najpierw pliki z podstawowymi znakami, polskie litery doczytują się osobno -->
+<link rel="preload" href="fonts/bsc-600-r.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-400-r.woff2" as="font" type="font/woff2" crossorigin>
+<!-- Największe zdjęcie pierwszego ekranu ładowane od razu (szybszy start) -->
+<link rel="preload" as="image" href="img/pas-3-500.webp" imagesrcset="img/pas-3-300.webp 300w, img/pas-3-500.webp 500w" imagesizes="(max-width: 759px) 45vw, 25vw" fetchpriority="high">
+
+<style>
+/* ================= CZCIONKI ================= */
+@font-face{font-family:Barlow;src:url(fonts/barlow-400-r.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0020-007E,U+00A0-00FF,U+2013-2014,U+2018-201E,U+2022,U+2026,U+20AC}
+@font-face{font-family:Barlow;src:url(fonts/barlow-400-pl.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0104-0107,U+0118-0119,U+0141-0144,U+015A-015B,U+0179-017C}
+@font-face{font-family:Barlow;src:url(fonts/barlow-600-r.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0020-007E,U+00A0-00FF,U+2013-2014,U+2018-201E,U+2022,U+2026,U+20AC}
+@font-face{font-family:Barlow;src:url(fonts/barlow-600-pl.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0104-0107,U+0118-0119,U+0141-0144,U+015A-015B,U+0179-017C}
+@font-face{font-family:"Barlow SC";src:url(fonts/bsc-600-r.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0020-007E,U+00A0-00FF,U+2013-2014,U+2018-201E,U+2022,U+2026,U+20AC}
+@font-face{font-family:"Barlow SC";src:url(fonts/bsc-600-pl.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0104-0107,U+0118-0119,U+0141-0144,U+015A-015B,U+0179-017C}
+
+/* ================= ZMIENNE (kolory z logo Aura Audio) ================= */
+:root{
+  --bialy:#FFFFFF;
+  --szary:#EEF0F2;        /* jasne tło sekcji */
+  --linia:#D9DDE2;        /* cienkie linie i ramki */
+  --grafit:#111214;       /* czerń pasów z logo - mocna sekcja */
+  --grafit-2:#1C1E21;
+  --tekst:#16181B;
+  --tekst-2:#4A4F57;
+  --czerwien:#D70000;     /* czerwone "PL" z logo (#FF0000), przyciemnione dla czytelności */
+  --czerwien-ciemna:#B00000;
+  --margines:clamp(16px,4vw,56px);
+  --szer:min(1680px, calc(100% - 2*var(--margines)));
+  --naglowek:64px;
+  --font-tytul:"Barlow SC","Arial Narrow",Arial,sans-serif;
+  --font-tekst:Barlow,Arial,sans-serif;
+}
+
+/* ================= PODSTAWY ================= */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:var(--naglowek);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bialy);color:var(--tekst);font:400 17px/1.6 var(--font-tekst);overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+h1,h2,h3,h4{font-family:var(--font-tytul);font-weight:600;line-height:1.08;margin:0;letter-spacing:-.005em}
+h2{font-size:clamp(32px,3.6vw,56px)}
+h3{font-size:clamp(23px,2vw,30px)}
+p{margin:0}
+.kontener{width:var(--szer);margin-inline:auto}
+.sekcja{padding:clamp(64px,8vw,128px) 0}
+.lead{font-size:clamp(18px,1.3vw,21px);color:var(--tekst-2);max-width:62ch}
+.niewidoczne{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Przycisk w kształcie środkowego pasa logo (trapez rozszerzający się ku dołowi) */
+.przycisk{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 30px;
+  background:var(--czerwien);color:#fff;text-decoration:none;font:600 18px/1 var(--font-tytul);letter-spacing:.01em;border:0;cursor:pointer;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 100%,0 100%);transition:background .2s}
+.przycisk:hover{background:var(--czerwien-ciemna)}
+.przycisk:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+/* Znacznik listy: mały pas z logo */
+.lista-pasy{list-style:none;padding:0;margin:0}
+.lista-pasy li{position:relative;padding-left:22px}
+.lista-pasy li::before{content:"";position:absolute;left:0;top:.42em;width:10px;height:.82em;background:var(--czerwien);
+  clip-path:polygon(25% 0,75% 0,100% 100%,0 100%)}
+
+/* ================= NAGŁÓWEK ================= */
+.naglowek{position:sticky;top:0;z-index:50;background:var(--bialy);border-bottom:1px solid var(--linia)}
+.naglowek .kontener{height:calc(var(--naglowek) - 1px);display:flex;align-items:center;justify-content:space-between;gap:24px}
+.logo img{width:auto;height:46px}
+.menu{display:flex;align-items:center;gap:clamp(18px,2vw,34px)}
+.menu a{text-decoration:none;font:600 18px/1 var(--font-tytul);color:var(--tekst)}
+.menu a:not(.przycisk):hover{color:var(--czerwien)}
+.menu .przycisk{min-height:44px;padding:0 22px;font-size:17px;color:#fff}
+.burger{display:none;width:48px;height:48px;border:0;background:none;cursor:pointer;padding:12px;margin-right:-10px}
+.burger span{display:block;height:3px;background:var(--tekst);margin:5px 0;transition:transform .2s,opacity .2s}
+@media (max-width:899px){
+  .burger{display:block}
+  .menu{position:fixed;inset:var(--naglowek) 0 auto 0;flex-direction:column;align-items:stretch;gap:0;background:var(--bialy);
+    border-bottom:1px solid var(--linia);padding:8px var(--margines) 24px;transform:translateY(-8px);opacity:0;visibility:hidden;transition:.2s}
+  .menu a{padding:15px 0;border-bottom:1px solid var(--szary);font-size:21px}
+  .menu .przycisk{margin-top:18px;min-height:52px;border:0}
+  .menu.otwarte{transform:none;opacity:1;visibility:visible}
+  .burger[aria-expanded="true"] span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+  .burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+  .burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+}
+
+/* ================= PIERWSZY EKRAN =================
+   Pięć zdjęć z realizacji ułożonych jak pięć pasów z logo Aura Audio:
+   pasy zbiegają się ku górze, środkowy jest najszerszy.
+   Na telefonie zostają trzy pasy (środkowe z logo). */
+.hero{position:relative;min-height:calc(100svh - var(--naglowek));display:flex;align-items:flex-end;background:var(--grafit);color:#fff;overflow:hidden;isolation:isolate}
+.pasy{position:absolute;inset:0;z-index:-2}
+.pas{position:absolute;inset:0}
+.pas img{width:100%;height:100%;object-fit:cover}
+/* kształty pasów na komputerze (procent szerokości ekranu, góra -> dół) */
+.pas-1{clip-path:polygon(0 0,17.6% 0,15.1% 100%,0 100%)}
+.pas-2{clip-path:polygon(18.4% 0,38.6% 0,35.6% 100%,15.9% 100%)}
+.pas-3{clip-path:polygon(39.4% 0,60.6% 0,64.4% 100%,36.4% 100%)}
+.pas-4{clip-path:polygon(61.4% 0,81.6% 0,84.1% 100%,65.2% 100%)}
+.pas-5{clip-path:polygon(82.4% 0,100% 0,100% 100%,84.9% 100%)}
+/* każde zdjęcie wyśrodkowane w swoim pasie */
+.pas-1 img{width:18%}
+.pas-2 img{width:24%;margin-left:15.5%}
+.pas-3 img{width:29%;margin-left:35.8%}
+.pas-4 img{width:24%;margin-left:61%}
+.pas-5 img{width:18%;margin-left:82%}
+@media (max-width:759px){
+  .pas-1,.pas-4{display:none}
+  .pas-2{clip-path:polygon(0 0,29.2% 0,25.2% 100%,0 100%)}
+  .pas-3{clip-path:polygon(30.8% 0,69.2% 0,74.8% 100%,26.8% 100%)}
+  .pas-5{clip-path:polygon(70.8% 0,100% 0,100% 100%,76.4% 100%)}
+  .pas-2 img{width:30%;margin-left:0}
+  .pas-3 img{width:50%;margin-left:26%}
+  .pas-5 img{width:30%;margin-left:70%}
+}
+/* przyciemnienie od dołu, żeby tekst był czytelny na każdym zdjęciu */
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,rgba(10,11,13,.94) 0%,rgba(10,11,13,.78) 34%,rgba(10,11,13,.18) 66%,rgba(10,11,13,0) 82%)}
+.hero-tresc{padding:clamp(72px,14vh,120px) 0 clamp(32px,6vh,72px)}
+.hero h1{font-size:clamp(36px,4.9vw,84px);max-width:17ch;text-wrap:balance}
+.hero-lead{margin-top:22px;font-size:clamp(18px,1.35vw,22px);line-height:1.5;max-width:56ch;color:#E3E5E8}
+.hero-akcje{margin-top:30px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px}
+.hero-tel{font:600 19px/1.3 var(--font-tytul);color:#fff;text-decoration:none}
+.hero-tel span{display:block;font:400 15px/1.3 var(--font-tekst);color:#C4C8CE}
+
+/* ================= TECHNOLOGIA ================= */
+.tech{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(36px,5vw,96px);align-items:center}
+.tech h2{max-width:16ch}
+.tech .lead{margin-top:20px}
+.tech-punkty{margin-top:36px;display:grid;gap:26px}
+.tech-punkty h3{font-size:clamp(21px,1.6vw,25px);margin-bottom:6px}
+.tech-punkty p{color:var(--tekst-2)}
+.tech-film figcaption{margin-top:12px;font-size:15px;color:var(--tekst-2)}
+@media (max-width:899px){.tech{grid-template-columns:1fr}}
+
+/* ================= FILM - FASADA (miniatura + odtwórz) =================
+   Odtwarzacz YouTube/Vimeo ładuje się dopiero po kliknięciu. */
+.film{position:relative;display:block;width:100%;aspect-ratio:16/9;background:var(--grafit);border:0;padding:0;cursor:pointer;overflow:hidden;color:#fff}
+.film img{width:100%;height:100%;object-fit:cover;transition:transform .4s,opacity .3s}
+.film:hover img{transform:scale(1.03);opacity:.9}
+.film-play{position:absolute;left:50%;top:50%;width:76px;height:54px;transform:translate(-50%,-50%);background:var(--czerwien);
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 100%,0 100%)}
+.film-play::after{content:"";position:absolute;left:31px;top:15px;border-style:solid;border-width:12px 0 12px 19px;border-color:transparent transparent transparent #fff}
+.film:focus-visible{outline:3px solid var(--czerwien);outline-offset:3px}
+.film iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+/* ================= SYSTEMY (wybrane produkty) ================= */
+.systemy{background:var(--szary)}
+.systemy-naglowek{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:20px 48px}
+.systemy-naglowek .lead{margin-top:18px}
+.grupa{margin-top:clamp(48px,6vw,88px);display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,3.2fr);gap:24px clamp(24px,3vw,56px)}
+.grupa-opis p{margin-top:10px;color:var(--tekst-2)}
+@media (max-width:1099px){.grupa{grid-template-columns:1fr}}
+/* rząd kart przesuwany palcem i myszą */
+.rzad{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;padding-bottom:12px;cursor:grab;overscroll-behavior-x:contain}
+.rzad.ciagniety{cursor:grabbing;scroll-snap-type:none}
+.rzad.ciagniety *{user-select:none;pointer-events:none}
+.rzad > *{scroll-snap-align:start;flex:0 0 auto}
+.karta{width:clamp(270px,24vw,380px);background:var(--bialy);display:flex;flex-direction:column}
+.karta-foto{aspect-ratio:4/3;background:#0B0C0D;overflow:hidden;
+  clip-path:polygon(3% 0,97% 0,100% 100%,0 100%)} /* górna krawędź węższa - jak pas logo */
+.karta-foto img{width:100%;height:100%;object-fit:cover}
+.karta-foto--produkt img{object-fit:contain;padding:6%}
+.karta-tresc{padding:20px 22px 22px;display:flex;flex-direction:column;flex:1}
+.karta h4{font-size:27px}
+.karta-typ{margin-top:2px;font-size:15px;color:var(--tekst-2)}
+.karta-korzysc{margin-top:12px;font-size:16.5px;line-height:1.55}
+.karta .lista-pasy{margin-top:14px;font-size:15px;color:var(--tekst-2);display:grid;gap:4px}
+.karta-link{margin-top:auto;padding-top:18px;font:600 17px/1.2 var(--font-tytul);color:var(--czerwien);text-decoration:none;align-self:flex-start}
+.karta-link:hover{text-decoration:underline}
+.systemy-stopka{margin-top:clamp(40px,5vw,72px);padding-top:28px;border-top:1px solid var(--linia);color:var(--tekst-2);max-width:80ch}
+.systemy-stopka a{color:var(--czerwien);font-weight:600}
+
+/* ================= WYDARZENIA (mocna sekcja) ================= */
+.wydarzenia{background:var(--grafit);color:#fff;position:relative;overflow:hidden}
+.wydarzenia .lead{color:#C4C8CE;margin-top:18px}
+.znak-tlo{position:absolute;right:-4%;top:40px;width:min(46vw,760px);color:#fff;opacity:.05;pointer-events:none}
+.panoramy{margin-top:clamp(36px,4vw,56px);padding-inline:var(--margines);gap:14px}
+.panorama{margin:0;height:clamp(220px,24vw,420px);width:auto;aspect-ratio:18/5}
+.panorama img{width:100%;height:100%;object-fit:cover}
+@media (max-width:759px){.panorama{aspect-ratio:auto;width:86vw}}
+.opinie{margin-top:clamp(48px,5vw,80px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 clamp(24px,3vw,56px)}
+.opinia{padding:24px 0;border-top:1px solid #33363B}
+.opinia blockquote{margin:0;font:600 clamp(21px,1.6vw,26px)/1.25 var(--font-tytul)}
+.opinia p{margin-top:10px;color:#AEB3BA;font-size:15.5px}
+.opinia a{color:#fff;text-decoration-color:var(--czerwien);text-underline-offset:3px}
+@media (max-width:899px){.opinie{grid-template-columns:1fr}}
+
+/* ================= FILMY (galeria) ================= */
+.filmy-siatka{margin-top:clamp(32px,4vw,56px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px 22px}
+@media (max-width:1279px){.filmy-siatka{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:899px){.filmy-siatka{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:599px){.filmy-siatka{grid-template-columns:1fr}}
+.film-karta h3{margin-top:12px;font-size:20px;line-height:1.2}
+.film-karta p{margin-top:4px;font-size:14.5px;color:var(--tekst-2)}
+.film-karta[hidden]{display:none}
+.filmy-wiecej{margin-top:36px}
+.przycisk--jasny{background:var(--grafit)}
+.przycisk--jasny:hover{background:#2A2C30}
+
+/* ================= KONTAKT ================= */
+.kontakt{background:var(--szary)}
+.kontakt-siatka{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(32px,5vw,96px);margin-top:clamp(32px,4vw,56px)}
+@media (max-width:999px){.kontakt-siatka{grid-template-columns:1fr}}
+.formularz{background:var(--bialy);padding:clamp(22px,3vw,44px);display:grid;gap:18px;align-content:start;align-self:start}
+.pole label{display:block;font:600 17px/1.3 var(--font-tytul);margin-bottom:6px}
+.pole input,.pole select,.pole textarea{width:100%;font:400 17px/1.4 var(--font-tekst);color:var(--tekst);background:#fff;border:1px solid #B9BFC7;padding:13px 14px;border-radius:0}
+.pole textarea{min-height:130px;resize:vertical}
+.pole input:focus,.pole select:focus,.pole textarea:focus{outline:2px solid var(--czerwien);outline-offset:0;border-color:var(--czerwien)}
+.pola-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:599px){.pola-2{grid-template-columns:1fr}}
+.zgoda{font-size:14.5px;color:var(--tekst-2);display:flex;gap:10px;align-items:flex-start}
+.zgoda input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--czerwien)}
+.formularz-info{font-size:15px;color:var(--tekst-2)}
+.formularz-info[hidden]{display:none}
+.dane h3{font-size:24px}
+.dane address{font-style:normal;margin-top:10px;line-height:1.7}
+.dane a{text-decoration-color:var(--czerwien);text-underline-offset:3px}
+.dane-tel{display:inline-block;margin-top:14px;font:600 clamp(26px,2.4vw,34px)/1.1 var(--font-tytul);text-decoration:none!important}
+.mapa{margin-top:28px;aspect-ratio:16/10;background:#DDE1E6;position:relative}
+.mapa iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.mapa-zastepcza{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--tekst-2);font-size:15px}
+.pobierz{margin-top:32px}
+.pobierz ul{margin-top:12px;display:grid;gap:7px}
+.pobierz a{color:var(--tekst);text-decoration-color:var(--czerwien);text-underline-offset:3px}
+.pobierz small{color:var(--tekst-2)}
+
+/* ================= STOPKA ================= */
+.stopka{background:#0B0C0E;color:#B4B9C0;padding:56px 0 28px;font-size:15.5px}
+.stopka-siatka{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
+.stopka h2{font-size:19px;color:#fff;margin-bottom:12px}
+.stopka ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.stopka a{color:#B4B9C0;text-decoration:none}
+.stopka a:hover{color:#fff}
+.stopka-marka svg{width:120px;color:#fff}
+.stopka-marka p{margin-top:14px;max-width:34ch}
+.stopka-dol{margin-top:44px;padding-top:20px;border-top:1px solid #26282C;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+@media (max-width:899px){.stopka-siatka{grid-template-columns:1fr 1fr}.stopka-marka{grid-column:1/-1}}
+
+/* ================= ZNAK WYKONAWCY (Wylinka) ================= */
+.wylinka-badge{display:inline-flex;align-items:center;gap:.4em;color:inherit;text-decoration:none;font-size:.875em;line-height:1;opacity:.85}
+.wylinka-badge:hover,.wylinka-badge:focus-visible{opacity:1}
+.wylinka-badge:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
+.wylinka-badge svg{width:18px;height:18px;flex:none;overflow:visible}
+.wylinka-badge b{font-weight:600}
+.wylinka-badge .wy-old{opacity:.45;transform-origin:40px 30px;transition:transform .32s cubic-bezier(.3,.7,.4,1),opacity .32s ease-out}
+.wylinka-badge .wy-pod{opacity:0;transition:opacity .2s ease-out .08s}
+.wylinka-badge:hover .wy-old,.wylinka-badge:focus-visible .wy-old{transform:translate(9px,7px) rotate(9deg);opacity:0}
+.wylinka-badge:hover .wy-pod,.wylinka-badge:focus-visible .wy-pod{opacity:1}
+@media (prefers-reduced-motion:reduce){.wylinka-badge .wy-old,.wylinka-badge .wy-pod{transition:none}.wylinka-badge:hover .wy-old,.wylinka-badge:focus-visible .wy-old{transform:none;opacity:.45}.wylinka-badge:hover .wy-pod,.wylinka-badge:focus-visible .wy-pod{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===================== SEKCJA: NAGŁÓWEK I MENU ===================== -->
+<header class="naglowek">
+  <div class="kontener">
+    <a class="logo" href="#start" aria-label="Aura Audio Polska - strona główna">
+      <img src="img/logo-aura-audio-pl.webp" width="387" height="165" alt="Aura Audio PL">
+    </a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Otwórz menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="menu" id="menu" aria-label="Menu główne">
+      <a href="#technologia">Technologia</a>
+      <a href="#systemy">Systemy</a>
+      <a href="#wydarzenia">Wydarzenia</a>
+      <a href="#filmy">Filmy</a>
+      <a class="przycisk" href="#kontakt">Umów odsłuch</a>
+    </nav>
+  </div>
+</header>
+
+<main id="start">
+
+<!-- ===================== SEKCJA: PIERWSZY EKRAN =====================
+     Zdjęcia pasów: img/pas-1 ... pas-5 (pionowe, 500 px szerokości).
+     pas-1 i pas-4 są tylko na komputerze - dlatego <picture> z media,
+     żeby telefon w ogóle ich nie pobierał. -->
+<section class="hero" aria-labelledby="hero-tytul">
+  <div class="pasy" aria-hidden="true">
+    <div class="pas pas-1"><picture><source media="(min-width: 760px)" srcset="img/pas-1-500.webp"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="500" height="1000" alt="" style="object-position:40% 50%"></picture></div>
+    <div class="pas pas-2"><img src="img/pas-2-500.webp" srcset="img/pas-2-300.webp 300w, img/pas-2-500.webp 500w" sizes="(max-width: 759px) 30vw, 24vw" width="500" height="1000" alt="" style="object-position:45% 50%"></div>
+    <div class="pas pas-3"><img src="img/pas-3-500.webp" srcset="img/pas-3-300.webp 300w, img/pas-3-500.webp 500w" sizes="(max-width: 759px) 45vw, 25vw" width="500" height="1000" alt="" fetchpriority="high" style="object-position:50% 40%"></div>
+    <div class="pas pas-4"><picture><source media="(min-width: 760px)" srcset="img/pas-4-500.webp"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="500" height="1000" alt="" style="object-position:50% 50%"></picture></div>
+    <div class="pas pas-5"><img src="img/pas-5-500.webp" srcset="img/pas-5-300.webp 300w, img/pas-5-500.webp 500w" sizes="(max-width: 759px) 30vw, 18vw" width="500" height="1000" alt="" style="object-position:30% 50%"></div>
+  </div>
+  <div class="kontener hero-tresc">
+    <h1 id="hero-tytul">Nagłośnienie Aura Audio w Polsce - dźwięk tam, gdzie są słuchacze</h1>
+    <p class="hero-lead">Fińskie systemy, w których kierunkowość zapewnia sama konstrukcja kolumny, a nie korekcja w procesorze. Wybrane modele pokażemy i damy posłuchać na żywo.</p>
+    <div class="hero-akcje">
+      <a class="przycisk" href="#kontakt">Umów odsłuch</a>
+      <a class="hero-tel" href="tel:+48507037035">507 037 035<span>Przemysław Waszkiewicz</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SEKCJA: TECHNOLOGIA ===================== -->
+<section class="sekcja" id="technologia" aria-labelledby="tech-tytul">
+  <div class="kontener tech">
+    <div>
+      <h2 id="tech-tytul">Problem rozwiązany w konstrukcji, nie w procesorze</h2>
+      <p class="lead">Aura Audio założyło pod koniec lat 90. dwóch fińskich inżynierów dźwięku. Ich zasada jest prosta: większość problemów akustycznych trzeba rozwiązać na etapie projektu kolumny, a nie naprawiać później w DSP.</p>
+      <div class="tech-punkty">
+        <div>
+          <h3>Passive end-fired</h3>
+          <p>Opatentowany układ głośników, który daje kontrolę nad kierunkowością w całym paśmie. Dźwięk idzie do publiczności, mniej trafia na scenę i w ściany.</p>
+        </div>
+        <div>
+          <h3>Falowody przy średnich tonach</h3>
+          <p>Szeroka, równa dyspersja i brak słyszalnego filtrowania grzebieniowego - także w małych głośnikach instalacyjnych.</p>
+        </div>
+        <div>
+          <h3>Minimum DSP, prosta obsługa</h3>
+          <p>Zestawy grają liniowo bez ciężkiej korekcji. Gotowe presety są dla wzmacniaczy Aura Audio, a dla wybranych modeli także dla Powersoft serii T i X.</p>
+        </div>
+      </div>
+    </div>
+    <figure class="tech-film" style="margin:0">
+      <!-- Film wyróżniony: ten sam mechanizm co galeria (data-platforma + data-id) -->
+      <button class="film" type="button" data-platforma="youtube" data-id="VFMQoiS_Rso" aria-label="Odtwórz film: Technologia Passive End Fire - patent firmy Aura Audio">
+        <img src="img/filmy/VFMQoiS_Rso.webp" width="640" height="360" alt="" loading="lazy" decoding="async">
+        <span class="film-play" aria-hidden="true"></span>
+      </button>
+      <figcaption>Jak działa Passive End Fire - film po polsku (Przemysław Waszkiewicz, 3 min).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================== SEKCJA: WYBRANE SYSTEMY =====================
+     Każda grupa = <div class="grupa">, każdy produkt = <article class="karta">.
+     Nowy produkt: skopiuj cały blok <article> ... </article> i zmień treść.
+     Zdjęcie produktu na czarnym tle -> klasa karta-foto--produkt (cały produkt
+     widoczny), zdjęcie z użytkowania -> bez tej klasy (kadr wypełnia kartę). -->
+<section class="sekcja systemy" id="systemy" aria-labelledby="systemy-tytul">
+  <div class="kontener">
+    <div class="systemy-naglowek">
+      <div>
+        <h2 id="systemy-tytul">Wybrane systemy i do czego posłużą</h2>
+        <p class="lead">To nie jest pełny katalog. To produkty, które najczęściej polecamy - z tym, co realnie dają na scenie, w studiu i w lokalu. Część z nich mamy w ciągłym użyciu, więc można ich posłuchać.</p>
+      </div>
+    </div>
+
+    <!-- ---------- GRUPA: Scena i plener ---------- -->
+    <div class="grupa">
+      <div class="grupa-opis">
+        <h3>Scena i plener</h3>
+        <p>Dla firm nagłośnieniowych i organizatorów: zestawy, które grają do publiczności, a nie na scenę i mikrofony.</p>
+      </div>
+      <div class="rzad">
+        <article class="karta">
+          <div class="karta-foto karta-foto--produkt"><img src="img/produkt-s1d.webp" width="601" height="640" alt="Kolumna Aura Audio S1D" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>S1D</h4>
+            <p class="karta-typ">Kolumna point source, 3,5-drożna</p>
+            <p class="karta-korzysc">Uniwersalna kolumna na statyw - od klubu po plener. Wysoka skuteczność i niskie zniekształcenia w kompaktowej obudowie.</p>
+            <ul class="lista-pasy"><li>Dyspersja 90x60, 120x40 lub 60x40 st.</li><li>Waga 32 kg</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="S1D">Zapytaj o S1D</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto karta-foto--produkt"><img src="img/produkt-s2.webp" width="358" height="640" alt="Moduł systemu liniowego Aura Audio S2" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>S2</h4>
+            <p class="karta-typ">Moduł systemu liniowego, symetryczny, 3,5-drożny</p>
+            <p class="karta-korzysc">Gdy publiczności jest więcej: układ liniowy z tą samą kontrolą kierunkowości co S1D.</p>
+            <ul class="lista-pasy"><li>Dyspersja 80x10 st.</li><li>Waga modułu 35 kg</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="S2">Zapytaj o S2</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto karta-foto--produkt"><img src="img/produkt-s18c.webp" width="640" height="436" alt="Subbas Aura Audio S18C" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>S18C</h4>
+            <p class="karta-typ">Subbas zespolony 18 + 12 cali</p>
+            <p class="karta-korzysc">Charakter kardioidalny bez dodatkowego procesora: bas idzie na widownię, a scena zostaje czystsza.</p>
+            <ul class="lista-pasy"><li>Technologia passive end-fired</li><li>Waga 63 kg</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="S18C">Zapytaj o S18C</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto karta-foto--produkt"><img src="img/produkt-xd12.webp" width="640" height="480" alt="Subbas Aura Audio XD12" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>XD12 i XQ48</h4>
+            <p class="karta-typ">Subbasy hybrydowe: tuba + band-pass</p>
+            <p class="karta-korzysc">Zwarty, precyzyjny dół z wydajnością głośnika o rozmiar większego. Potrzeba potężnego basu na małej powierzchni? XQ48.</p>
+            <ul class="lista-pasy"><li>XQ48: 4 x 18 cali, max SPL 150 dB</li><li>XQ48 waży tylko 101 kg</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="XD12 / XQ48">Zapytaj o subbasy</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- ---------- GRUPA: Monitory sceniczne ---------- -->
+    <div class="grupa">
+      <div class="grupa-opis">
+        <h3>Monitory sceniczne</h3>
+        <p>Koaksjalne monitory podłogowe, które można też założyć na statyw. Muzyk słyszy siebie wyraźnie, z zapasem przed sprzężeniem.</p>
+      </div>
+      <div class="rzad">
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-c-monitor.webp" width="500" height="375" alt="Monitor sceniczny Aura Audio serii C na scenie" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>C10</h4>
+            <p class="karta-typ">Kompaktowy monitor koaksjalny</p>
+            <p class="karta-korzysc">Ultralekki dzięki sklejce wzmocnionej włóknem szklanym. Preset dla Powersoft T i X sprawdzony na wielu mikrofonach.</p>
+            <ul class="lista-pasy"><li>Rozproszenie tuby 100 st.</li><li>Waga 12 kg</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="C10">Zapytaj o C10</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-c-piano.webp" width="500" height="375" alt="Monitor Aura Audio przy fortepianie" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>C12 i C15</h4>
+            <p class="karta-typ">Niskoprofilowe monitory koaksjalne</p>
+            <p class="karta-korzysc">Dwukrotnie większa moc niż C10 - na większe sceny, gdzie potrzeba więcej głośności na scenie.</p>
+            <ul class="lista-pasy"><li>Wysoki podział pasma</li><li>Mniej zniekształceń drivera</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="C12 / C15">Zapytaj o C12 i C15</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- ---------- GRUPA: Studio i dom ---------- -->
+    <div class="grupa">
+      <div class="grupa-opis">
+        <h3>Studio i odsłuch w domu</h3>
+        <p>Pasywne monitory bez kopułki wysokotonowej. Słychać nagranie, a nie głośnik - także przy cichym odsłuchu.</p>
+      </div>
+      <div class="rzad">
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-f2-studio.webp" width="640" height="480" alt="Monitor studyjny Aura Audio F2" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>F2</h4>
+            <p class="karta-typ">Duży, analogowy, pasywny monitor studyjny</p>
+            <p class="karta-korzysc">Naturalne brzmienie bez koloryzacji, świetnie oddana przestrzeń i kontrolowany bas. Niedostatki nagrania słychać od razu.</p>
+            <ul class="lista-pasy"><li>Podział ok. 250 Hz, filtry 1. rzędu</li><li>60 x 60 cm, od 30 Hz</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="F2">Zapytaj o F2</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-f2-home.webp" width="640" height="480" alt="Kolumna Aura Audio F2 Home Edition" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>F2 Home Edition</h4>
+            <p class="karta-typ">Wolnostojąca wersja F2</p>
+            <p class="karta-korzysc">Brzmienie z reżyserki przeniesione do salonu. Kolumny stoją na podłodze, a słucha się z kanapy.</p>
+            <ul class="lista-pasy"><li>Sekcja średnio-wysokotonowa nad wooferami</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="F2 Home Edition">Zapytaj o F2 Home</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-studio-offstage.webp" width="640" height="480" alt="Stanowisko studyjne z monitorami Aura Audio" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>F1 i Fsub</h4>
+            <p class="karta-typ">Satelita i subwoofer studyjny</p>
+            <p class="karta-korzysc">F1 jako satelita w systemie 2.1 albo w surround 5.1 i Dolby Atmos. Fsub rozszerza pasmo do 22 Hz.</p>
+            <ul class="lista-pasy"><li>F1 od 90 Hz</li><li>Fsub pasuje do F1 i F2</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="F1 / Fsub">Zapytaj o F1 i Fsub</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- ---------- GRUPA: Instalacje ---------- -->
+    <div class="grupa">
+      <div class="grupa-opis">
+        <h3>Restauracje, kościoły, sale</h3>
+        <p>Głośniki instalacyjne, które dobrze wyglądają, grają czysto i nie wymagają drogiej elektroniki.</p>
+      </div>
+      <div class="rzad">
+        <article class="karta">
+          <div class="karta-foto karta-foto--produkt"><img src="img/produkt-i3.webp" width="640" height="457" alt="Głośnik instalacyjny Aura Audio i3" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>i3</h4>
+            <p class="karta-typ">Projekt fińskiego designera Stefana Lindforsa</p>
+            <p class="karta-korzysc">Lekka obudowa z kompozytu bez własnych rezonansów i opatentowany falowód: szeroka dyspersja z 3-calowego głośnika.</p>
+            <ul class="lista-pasy"><li>Impedancja 16 Ohm</li><li>Płaska charakterystyka od 120 Hz</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="i3">Zapytaj o i3</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto karta-foto--produkt" style="background:#fff"><img src="img/produkt-i3pr.webp" width="640" height="383" alt="Głośnik Aura Audio i3PR z membraną bierną, przód i tył" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>i3PR</h4>
+            <p class="karta-typ">i3 z membraną bierną</p>
+            <p class="karta-korzysc">Pasmo od 65 Hz, więc muzyka w tle w restauracji zagra bez subwoofera, nawet z tanim wzmacniaczem naściennym. Cały system wychodzi taniej.</p>
+            <ul class="lista-pasy"><li>Dolne pasmo do 65 Hz</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="i3PR">Zapytaj o i3PR</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto"><img src="img/produkt-i12.webp" width="640" height="640" alt="Zestaw głośnikowy Aura Audio i12 na drewnianej ścianie" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>i8 i i12</h4>
+            <p class="karta-typ">Klasyczne zestawy dwudrożne</p>
+            <p class="karta-korzysc">Wysoki podział pasma, ok. 3 kHz: głośnik wysokotonowy nie gra tam, gdzie brzmiałby nieprzyjemnie dla ucha.</p>
+            <ul class="lista-pasy"><li>Podział pasma ok. 3 kHz</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="i8 / i12">Zapytaj o serię i</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- ---------- GRUPA: Wzmacniacze ---------- -->
+    <div class="grupa">
+      <div class="grupa-opis">
+        <h3>Wzmacniacze</h3>
+        <p>Od dużych końcówek z DSP do systemów koncertowych po kompaktowe 1U do studia i instalacji.</p>
+      </div>
+      <div class="rzad">
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-wzmacniacze.webp" width="640" height="480" alt="Wzmacniacze Aura Audio D80 w racku" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>D80DSP i D100DSP</h4>
+            <p class="karta-typ">Platforma MC2/XTA z 8-kanałowym DSP</p>
+            <p class="karta-korzysc">Presety dla całej gamy Aura Audio, różne sposoby sterowania i opcjonalne karty Dante.</p>
+            <ul class="lista-pasy"><li>D80DSP 4 x 2200 W, D100DSP 4 x 3800 W</li><li>Bez DSP: D80, D100, D120 (2 x 6800 W)</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="D80DSP / D100DSP">Zapytaj o wzmacniacze</a>
+          </div>
+        </article>
+        <article class="karta">
+          <div class="karta-foto"><img src="img/uzycie-rack.webp" width="640" height="480" alt="Rack z kompaktowymi wzmacniaczami Aura Audio" loading="lazy" decoding="async"></div>
+          <div class="karta-tresc">
+            <h4>D1 i D2</h4>
+            <p class="karta-typ">Kompaktowe 1U na modułach Hypex</p>
+            <p class="karta-korzysc">Transparentne brzmieniowo, z bardzo niskimi szumami własnymi. Zalecane między innymi do monitorów F2.</p>
+            <ul class="lista-pasy"><li>D1 (1/2 rack): od 2 x 125 W</li><li>D2 (rack): do 2 x 500 W / 8 Ohm</li></ul>
+            <a class="karta-link" href="#kontakt" data-pytanie="D1 / D2">Zapytaj o D1 i D2</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <p class="systemy-stopka">Pełna oferta z parametrami technicznymi jest na stronie producenta: <a href="https://www.auraaudio.fi" target="_blank" rel="noopener">auraaudio.fi</a>. Pytania o ceny i dostępność - najlepiej telefonicznie lub przez formularz poniżej.</p>
+  </div>
+</section>
+
+<!-- ===================== SEKCJA: WYDARZENIA (mocna, ciemna) =====================
+     Panoramy: img/wyd-*.webp w trzech rozmiarach (800/1200/1800 px).
+     Opinie: tylko prawdziwe wpisy z linkiem do źródła. -->
+<section class="sekcja wydarzenia" id="wydarzenia" aria-labelledby="wyd-tytul">
+  <svg class="znak-tlo" viewBox="0 0 258 76" aria-hidden="true"><use href="#znak-pasy"/></svg>
+  <div class="kontener">
+    <h2 id="wyd-tytul">Słychać na koncertach, w kościołach i w teatrze</h2>
+    <p class="lead">Zdjęcia z wydarzeń, na których grały systemy Aura Audio z naszego magazynu.</p>
+  </div>
+  <div class="rzad panoramy">
+    <figure class="panorama"><img src="img/wyd-jantar1-1200.webp" srcset="img/wyd-jantar1-800.webp 800w, img/wyd-jantar1-1200.webp 1200w, img/wyd-jantar1-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Koncert plenerowy z nagłośnieniem Aura Audio" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-kosciol1-1200.webp" srcset="img/wyd-kosciol1-800.webp 800w, img/wyd-kosciol1-1200.webp 1200w, img/wyd-kosciol1-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Koncert chóru w kościele z nagłośnieniem Aura Audio" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-koncert1-1200.webp" srcset="img/wyd-koncert1-800.webp 800w, img/wyd-koncert1-1200.webp 1200w, img/wyd-koncert1-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Koncert z orkiestrą na scenie i systemem Aura Audio" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-musical1-1200.webp" srcset="img/wyd-musical1-800.webp 800w, img/wyd-musical1-1200.webp 1200w, img/wyd-musical1-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Spektakl muzyczny na scenie teatralnej" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-oliwa2-1200.webp" srcset="img/wyd-oliwa2-800.webp 800w, img/wyd-oliwa2-1200.webp 1200w, img/wyd-oliwa2-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Występ wokalny na scenie z nagłośnieniem Aura Audio" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-olsztyn1-1200.webp" srcset="img/wyd-olsztyn1-800.webp 800w, img/wyd-olsztyn1-1200.webp 1200w, img/wyd-olsztyn1-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="System liniowy Aura Audio podwieszony w sali koncertowej" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-jazz1-1200.webp" srcset="img/wyd-jazz1-800.webp 800w, img/wyd-jazz1-1200.webp 1200w, img/wyd-jazz1-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Koncert jazzowy w klubie" loading="lazy" decoding="async"></figure>
+    <figure class="panorama"><img src="img/wyd-monitor3-1200.webp" srcset="img/wyd-monitor3-800.webp 800w, img/wyd-monitor3-1200.webp 1200w, img/wyd-monitor3-1800.webp 1800w" sizes="(max-width: 759px) 800px, 1500px" width="1800" height="500" alt="Monitory sceniczne Aura Audio na scenie plenerowej" loading="lazy" decoding="async"></figure>
+  </div>
+  <div class="kontener">
+    <div class="opinie">
+      <div class="opinia">
+        <blockquote>"Wdzydze dały radę!"</blockquote>
+        <p>Krzysztof Wałecki o S1D + S18F, <a href="https://www.facebook.com/share/r/1DG2RmYm8Q/" target="_blank" rel="noopener">wpis na Facebooku</a></p>
+      </div>
+      <div class="opinia">
+        <blockquote>Koncert Agnieszki Chylińskiej w Kolbudach</blockquote>
+        <p>S2, S18C i A28C w akcji, <a href="https://www.instagram.com/p/DZ_6PALIiuv/" target="_blank" rel="noopener">rolka na Instagramie</a></p>
+      </div>
+      <div class="opinia">
+        <blockquote>Pasywne "kardioidy" rodem z Finlandii</blockquote>
+        <p>Artykuł o Aura Audio na <a href="https://www.infosound.pl/artykul/58432,aura-audio-pasywne-kardioidy-rodem-z-finlandii" target="_blank" rel="noopener">infosound.pl</a> i <a href="https://realizator.pl/profil/poznaj-rozwiazania-aura-audio-rozmowa-z-przemkiem-waszkiewiczem.html" target="_blank" rel="noopener">rozmowa w realizator.pl</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SEKCJA: FILMY =====================
+     Lista filmów jest w pliku dane/filmy.json - tu nic nie trzeba zmieniać.
+     Skrypt js/main.js wstawia karty do <div id="filmy-lista">. -->
+<section class="sekcja" id="filmy" aria-labelledby="filmy-tytul">
+  <div class="kontener">
+    <h2 id="filmy-tytul">Zobacz i posłuchaj</h2>
+    <p class="lead" style="margin-top:18px">Prezentacje, opinie realizatorów i nagrania z wydarzeń. Odtwarzacz ładuje się dopiero po kliknięciu, więc strona pozostaje szybka.</p>
+    <div class="filmy-siatka" id="filmy-lista" aria-live="polite"></div>
+    <noscript><p>Filmy są na kanale <a href="https://www.youtube.com/@AuraAudioOfficial/">Aura Audio na YouTube</a>.</p></noscript>
+    <div class="filmy-wiecej"><button class="przycisk przycisk--jasny" type="button" id="filmy-wiecej" hidden>Pokaż wszystkie filmy</button></div>
+  </div>
+</section>
+
+<!-- ===================== SEKCJA: KONTAKT I ODSŁUCH =====================
+     Docelowo formularz wysyła wiadomość prostym skryptem PHP (wyslij.php)
+     na serwerze home.pl. W podglądzie nic nie jest wysyłane. -->
+<section class="sekcja kontakt" id="kontakt" aria-labelledby="kontakt-tytul">
+  <div class="kontener">
+    <h2 id="kontakt-tytul">Umów odsłuch albo zapytaj o system</h2>
+    <p class="lead" style="margin-top:18px">Napisz, gdzie ma grać nagłośnienie i ile osób ma słuchać. Doradzimy, co wybrać, i zorganizujemy prezentację.</p>
+    <div class="kontakt-siatka">
+      <form class="formularz" id="formularz" novalidate>
+        <div class="pola-2">
+          <div class="pole"><label for="f-imie">Imię i nazwisko</label><input id="f-imie" name="imie" autocomplete="name" required></div>
+          <div class="pole"><label for="f-kontakt">Telefon lub e-mail</label><input id="f-kontakt" name="kontakt" autocomplete="email" required></div>
+        </div>
+        <div class="pole"><label for="f-temat">Czego dotyczy zapytanie</label>
+          <select id="f-temat" name="temat">
+            <option>Odsłuch lub prezentacja</option>
+            <option>Dobór systemu do sali lub sceny</option>
+            <option>Cena i dostępność</option>
+            <option>Pliki do predykcji, parametry</option>
+            <option>Inne</option>
+          </select>
+        </div>
+        <div class="pole"><label for="f-wiadomosc">Wiadomość</label><textarea id="f-wiadomosc" name="wiadomosc" placeholder="Np. sala na 300 osób, koncerty i konferencje"></textarea></div>
+        <label class="zgoda"><input type="checkbox" name="zgoda" required> Zgadzam się na kontakt w sprawie zapytania. Dane służą tylko do odpowiedzi.</label>
+        <div><button class="przycisk" type="submit">Wyślij zapytanie</button></div>
+        <p class="formularz-info" id="formularz-info" role="status" hidden>To podgląd - formularz nic nie wysyła. Na docelowej stronie wiadomość trafi na info@auraaudio.pl.</p>
+      </form>
+
+      <div class="dane">
+        <h3>Aura Audio Polska</h3>
+        <address>
+          Offstage Przemysław Waszkiewicz<br>
+          ul. Perłowa 14, 83-031 Łęgowo<br>
+          <a href="mailto:info@auraaudio.pl">info@auraaudio.pl</a>
+        </address>
+        <a class="dane-tel" href="tel:+48507037035">+48 507 037 035</a>
+        <div class="mapa" id="mapa" data-src="https://www.google.com/maps?q=Per%C5%82owa+14,+83-031+%C5%81%C4%99gowo&amp;output=embed">
+          <span class="mapa-zastepcza">Mapa wczyta się po przewinięciu</span>
+        </div>
+        <div class="pobierz">
+          <h3>Do pobrania</h3>
+          <ul class="lista-pasy">
+            <li><a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/Aura+Audio+full+catalog+2027.pdf" target="_blank" rel="noopener">Pełny katalog 2027</a> <small>PDF</small></li>
+            <li><a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/S-series-2024.pdf" target="_blank" rel="noopener">Broszura serii S</a> <small>PDF</small></li>
+            <li>Pliki GLL do <a href="https://www.afmg.eu/en/ease-focus-3-free-download" target="_blank" rel="noopener">EASE Focus 3</a>:
+              <a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/S1-V10.gll">S1/S1D</a>,
+              <a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/Aura_Audio_S2.gll">S2</a>,
+              <a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/S18_V10.gll">S18/S18C</a>,
+              <a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/A2_V11.gll.zip">A2</a>,
+              <a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/A3_V10.gll.zip">A3</a>,
+              <a href="https://irp.cdn-website.com/cb3ad5f1/files/uploaded/A6_1_02.gll.zip">A6</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== SEKCJA: STOPKA ===================== -->
+<footer class="stopka">
+  <div class="kontener">
+    <div class="stopka-siatka">
+      <div class="stopka-marka">
+        <svg viewBox="0 0 258 76" role="img" aria-label="Znak Aura Audio"><use href="#znak-pasy"/></svg>
+        <p>Przedstawiciel fińskiej marki Aura Audio w Polsce: Offstage Przemysław Waszkiewicz.</p>
+      </div>
+      <div>
+        <h2>Kontakt</h2>
+        <ul>
+          <li><a href="tel:+48507037035">+48 507 037 035</a></li>
+          <li><a href="mailto:info@auraaudio.pl">info@auraaudio.pl</a></li>
+          <li>ul. Perłowa 14, Łęgowo</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Na stronie</h2>
+        <ul>
+          <li><a href="#technologia">Technologia</a></li>
+          <li><a href="#systemy">Systemy</a></li>
+          <li><a href="#filmy">Filmy</a></li>
+          <li><a href="#kontakt">Odsłuch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>W sieci</h2>
+        <ul>
+          <li><a href="https://www.facebook.com/aura.audio.polska/" target="_blank" rel="noopener">Facebook Aura Audio Polska</a></li>
+          <li><a href="https://www.youtube.com/@AuraAudioOfficial/" target="_blank" rel="noopener">YouTube Aura Audio</a></li>
+          <li><a href="https://www.instagram.com/auraaudio.fi/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.auraaudio.fi" target="_blank" rel="noopener">auraaudio.fi</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="stopka-dol">
+      <span>&copy; <span id="rok">2026</span> Aura Audio Polska</span>
+      <a class="wylinka-badge" href="https://wylinka.pl/?utm_source=auraaudio.pl&amp;utm_medium=stopka&amp;utm_campaign=wykonanie" rel="noopener" title="Strona wykonana przez Wylinka"><svg viewBox="0 0 64 64" aria-hidden="true" focusable="false" fill="currentColor"><path d="M9.8 22.8l-1.2-7.9 2.2-3.7 15.5 4.6-.5 1.5-7.2 5.5 4.7 15.6 5-15.6 7 0 4.1 12.7-4.2-.9-2.6 1.8-.8-2.2-5.3 15.6-4.3 0 .4 .2-2.1 2.8-1.3-1.1 1.1-1.4-3.1 .2-.1-1.7 2.2-.1-5.7-16.5-4.8 .6-.8 3.1 0 .5-.3 .5 .8 2.2-1.6 .5-.4-1.3-.8 1.6-1.5-.8 .8-1.6-1.4 .6-.6-1.6 2.3-.8 .2-.4 1.3-4.8 5.9-.8-2.4-6.9zM15.2 13.7l-.1-.4-.4 .8-.1 .8 .1 1 .1 .4 .3 .7 .3-.9 .1-.7 0-.8z"/><path class="wy-pod" d="M37.1 49.8l-4.5-13.3 2.6-1.8 4.2 .9 .9 2.8 3-9.7 0-.5 .1-.8 3.2-8.4 .5-1 .6-1 .9-1.1 1.3-1 1.1-.7 1.4-.5 1.4-.3 .7 0 .9 0 1.2 .3 1.4 .6 .8 .5 .7 .7 .6 .7 .5 .9 .3 .9 .1 .9 0 .8-.2 .9-.5 .9-.5 .6-.7 .5-.7 .3-.1-.1 0-.1 .5-.5 .3-.7 .2-.5 0-.6-.1-.6-.3-.7-.4-.5-.4-.4-.5-.3-.6-.3-.7 0-.7 .1-.6 .1-.5 .4-.5 .5-.3 .5-.2 .7-.1 1.5-1.4 5.1-.8 3.3-.3 .7-.5 .7-6 17.5 1.9 .1-.1 1.7-3.1-.2 1.1 1.4-1.3 1.1-2.1-2.8 .4-.2z"/><path class="wy-old" d="M40.8 50l.4-.2-4.1 0-4.2-12.5 2.5-1.7 4.3 .9 .6 1.9 .6-1.6 0-.3 2.4-7.8 0-.5 .1-.8 3.2-8.4 .4-.8 .6-.9 .9-1.2 .9-.9 1.3-.8 1.4-.6 1.2-.3 1.4-.1 1.3 .1 .6 .2 .8 .3 1.1 .6 .9 .7 .7 .9 .5 .9 .3 .9 .1 1.1-.1 .9-.3 .9-.4 .7-.6 .7-.6 .4-.6 .2-.1-.1 0-.1 .5-.5 .3-.7 .2-.5 0-.5-.1-.6-.2-.6-.3-.5-.4-.5-.5-.3-.6-.3-.7-.1-.6 0-.6 .1-.6 .3-.6 .5-.3 .4-.2 .5-.1 .5-.1 1.5-1.4 5.1-.8 3.3-.3 .7-.5 .7-6 17.5 1.9 .1-.1 1.7-3.1-.2 1.1 1.4-1.3 1.1zM49.6 17.1l.6 1.7-1.5 1.9 .4 .4 1.8-2.1-.7-2.1zM48.1 28.3l.5 1.8-1.7 1.8 .4 .4 1.9-2-.6-2.2zM37.9 41.7l1.7-1.5-.4-.4-1.7 1.4zM42.6 38.7l-1.5 2.8 1.1 2-1.3 2.6 .5 .2 1.5-2.8-1.1-2 1.4-2.5z"/></svg><span>wykonanie: <b>Wylinka</b></span></a>
+    </div>
+  </div>
+</footer>
+
+<!-- Znak z logo: pięć pasów przeciętych łukami (czoła fali). Używany przez <use href="#znak-pasy">. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="znak-ciecia" maskUnits="userSpaceOnUse" x="0" y="0" width="258" height="76">
+      <rect width="258" height="76" fill="#fff"/>
+      <g fill="none" stroke="#000" stroke-width="3.6">
+        <path d="M0 32Q129 8 258 32"/><path d="M0 48Q129 18 258 48"/><path d="M0 66Q129 28 258 66"/>
+      </g>
+    </mask>
+    <g id="znak-pasy" fill="currentColor" mask="url(#znak-ciecia)">
+      <path d="M32 0H43L37 76H0Z"/><path d="M69 0H81L88 76H42Z"/><path d="M108 0H150L164 76H94Z"/>
+      <path d="M177 0H189L216 76H170Z"/><path d="M215 0H226L258 76H221Z"/>
+    </g>
+  </defs>
+</svg>
+
+<script src="js/main.js" defer></script>
+</body>
+</html>
